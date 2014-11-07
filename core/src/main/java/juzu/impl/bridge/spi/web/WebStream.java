@@ -60,14 +60,17 @@ public abstract class WebStream implements AsyncStream {
   /** The current document being assembled. */
   private final Page page;
 
+  private final boolean isFullPage;
+
   /** . */
   private final boolean minifyAssets;
 
-  public WebStream(HttpStream stream, AssetManager assetManager, boolean minifyAssets) {
+  public WebStream(HttpStream stream, AssetManager assetManager, boolean minifyAssets, boolean isFullPage) {
     this.stream = stream;
     this.assetManager = assetManager;
     this.page = new Page();
     this.minifyAssets = minifyAssets;
+    this.isFullPage = isFullPage;
   }
 
   public void provide(Chunk chunk) {
@@ -96,7 +99,9 @@ public abstract class WebStream implements AsyncStream {
             Tools.addAll(page.resolvedAssets, resolvedAssets);
           }
           status = STREAMING;
-          page.sendHeader(stream);
+          if(isFullPage) {
+              page.sendHeader(stream);
+          }
         }
         catch (IllegalArgumentException e) {
 
@@ -139,7 +144,9 @@ public abstract class WebStream implements AsyncStream {
           provide(Chunk.create(""));
         }
         if (status == STREAMING) {
-          page.sendFooter(stream);
+          if(isFullPage) {
+            page.sendFooter(stream);
+          }
         }
       }
       finally {
